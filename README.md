@@ -1,5 +1,7 @@
 # 사주팔자 - 무료 사주 풀이
 
+[![GitHub repo](https://img.shields.io/badge/GitHub-saju--project-181717?logo=github)](https://github.com/seungeun20/saju-project)
+
 이름과 생년월일시를 입력하면 사주팔자(년/월/일/시주)와 오행 분포, AI 기반 해석(총운·재물운·애정운·건강운·주의할 달·행운의 색)을 보여주는 React 웹 앱입니다.
 
 ## 주요 기능
