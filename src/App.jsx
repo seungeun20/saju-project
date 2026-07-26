@@ -393,8 +393,8 @@ export default function SajuApp() {
   const [birthTime, setBirthTime] = useState("");
   const [timeUnknown, setTimeUnknown] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [sazuKey, setSazuKey] = useState("");
-  const [openrouterKey, setOpenrouterKey] = useState("");
+  const [sazuKey, setSazuKey] = useState(import.meta.env.VITE_SAZU_API_KEY ?? "");
+  const [openrouterKey, setOpenrouterKey] = useState(import.meta.env.VITE_OPENROUTER_API_KEY ?? "");
 
   const [result, setResult] = useState(null);
   const [isDemo, setIsDemo] = useState(false);
