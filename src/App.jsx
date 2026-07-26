@@ -15,7 +15,6 @@ import {
   Coins,
   Heart,
   HeartPulse,
-  CalendarClock,
   Palette,
 } from "lucide-react";
 
@@ -32,7 +31,6 @@ const OHAENG_OF_JI = {
 };
 const OHAENG_COLOR = { 목: "#7A9B5C", 화: "#B33A3A", 토: "#C9A961", 금: "#B8B4C8", 수: "#4C6C8C" };
 const OHAENG_LABEL = { 목: "목(木)", 화: "화(火)", 토: "토(土)", 금: "금(金)", 수: "수(水)" };
-const MONTHS = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
 const PILLAR_KEYS = [
   { key: "year", label: "년주" },
   { key: "month", label: "월주" },
@@ -75,7 +73,6 @@ function generateMockSaju(seedStr) {
 
 function buildMockInterpretation(name, counts) {
   const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-  const caution = MONTHS[hashSeed(name + "caution") % 12];
   const colorMap = {
     목: ["초록", "연두"], 화: ["빨강", "주황"], 토: ["노랑", "베이지"],
     금: ["흰색", "은색"], 수: ["검정", "남색"],
@@ -85,7 +82,6 @@ function buildMockInterpretation(name, counts) {
     wealth: "큰 변동보다는 꾸준함이 재물운을 지켜주는 시기예요. 무리한 투자보다 계획적인 지출 관리가 유리해요.",
     love: "인연은 가까운 곳에서 자연스럽게 시작될 가능성이 높아요. 먼저 다가가는 용기가 좋은 결과로 이어질 수 있어요.",
     health: "무리한 스케줄보다 규칙적인 생활 리듬이 컨디션을 좌우해요. 수면과 휴식을 우선순위에 두세요.",
-    cautionMonth: `${caution}은 평소보다 서두르지 말고 한 박자 쉬어가는 게 좋아요.`,
     luckyColors: colorMap[dominant],
   };
 }
@@ -514,7 +510,7 @@ export default function SajuApp() {
         messages: [
           {
             role: "user",
-            content: `다음 사주 정보를 참고해서 재미 위주로 한국어 해석을 JSON으로만 응답해줘. 키: total, wealth, love, health, cautionMonth, luckyColors(배열). 사주 정보: ${JSON.stringify(
+            content: `다음 사주 정보를 참고해서 재미 위주로 한국어 해석을 JSON으로만 응답해줘. 키: total, wealth, love, health, luckyColors(배열). 사주 정보: ${JSON.stringify(
               sajuSummary
             )}`,
           },
@@ -802,14 +798,6 @@ export default function SajuApp() {
               건강운
             </div>
             <p className="section-body">{result.interpretation.health}</p>
-          </div>
-
-          <div className="panel">
-            <div className="section-title">
-              <CalendarClock size={15} />
-              올해 조심해야 하는 달
-            </div>
-            <p className="section-body">{result.interpretation.cautionMonth}</p>
           </div>
 
           <div className="panel">
