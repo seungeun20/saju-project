@@ -9,9 +9,7 @@ import {
 import {
   Sparkles,
   Moon,
-  Settings2,
   Loader2,
-  ChevronDown,
   Stamp,
   ArrowLeft,
   Coins,
@@ -42,6 +40,13 @@ const PILLAR_KEYS = [
   { key: "hour", label: "시주" },
 ];
 const ELEMENT_KEY_MAP = { wood: "목", fire: "화", earth: "토", metal: "금", water: "수" };
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from({ length: CURRENT_YEAR - 1920 + 1 }, (_, i) => CURRENT_YEAR - i);
+const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => i + 1);
+function daysInMonth(year, month) {
+  return new Date(year, month, 0).getDate();
+}
 
 function hashSeed(str) {
   let h = 0;
@@ -175,9 +180,9 @@ const STYLE = `
 }
 .saju-app label.field-label:first-of-type { margin-top: 0; }
 .saju-app input[type="text"],
-.saju-app input[type="date"],
 .saju-app input[type="time"],
-.saju-app input[type="password"] {
+.saju-app input[type="password"],
+.saju-app select {
   width: 100%;
   box-sizing: border-box;
   background: rgba(13, 13, 20, 0.6);
@@ -189,7 +194,8 @@ const STYLE = `
   outline: none;
   transition: border-color 0.15s ease;
 }
-.saju-app input:focus {
+.saju-app input:focus,
+.saju-app select:focus {
   border-color: var(--gold-bright);
 }
 .saju-app input.error {
@@ -199,6 +205,21 @@ const STYLE = `
   color: var(--danger);
   font-size: 12px;
   margin-top: 6px;
+}
+.saju-app select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c9a13b' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+  padding-right: 30px;
+}
+.saju-app .date-select-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 8px;
 }
 .saju-app .toggle-row {
   display: flex;
@@ -230,31 +251,6 @@ const STYLE = `
   color: var(--moon);
 }
 .saju-app .checkbox-row input { accent-color: var(--gold); }
-.saju-app .advanced-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  color: var(--moon);
-  font-size: 12px;
-  cursor: pointer;
-  padding: 0;
-  margin-top: 20px;
-}
-.saju-app .advanced-toggle .chev { transition: transform 0.15s ease; }
-.saju-app .advanced-toggle.open .chev { transform: rotate(180deg); }
-.saju-app .advanced-body {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed var(--gold-soft);
-}
-.saju-app .hint {
-  font-size: 11.5px;
-  color: var(--moon);
-  line-height: 1.6;
-  margin-top: 6px;
-}
 .saju-app .submit-btn {
   width: 100%;
   margin-top: 24px;
@@ -422,18 +418,44 @@ export default function SajuApp() {
   const [screen, setScreen] = useState("input"); // input | loading | result
   const [name, setName] = useState("");
   const [calendarType, setCalendarType] = useState("solar"); // solar | lunar
-  const [birthDate, setBirthDate] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthDay, setBirthDay] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [timeUnknown, setTimeUnknown] = useState(false);
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [sazuKey, setSazuKey] = useState(import.meta.env.VITE_SAZU_API_KEY ?? "");
-  const [openrouterKey, setOpenrouterKey] = useState(import.meta.env.VITE_OPENROUTER_API_KEY ?? "");
+  const [gender, setGender] = useState(""); // male | female
+  const [sazuKey] = useState(import.meta.env.VITE_SAZU_API_KEY ?? "");
+  const [openrouterKey] = useState(import.meta.env.VITE_OPENROUTER_API_KEY ?? "");
 
   const [result, setResult] = useState(null);
   const [isDemo, setIsDemo] = useState(false);
   const [errorNote, setErrorNote] = useState("");
 
-  const canSubmit = name.trim() && birthDate && (timeUnknown || birthTime);
+  const birthDate =
+    birthYear && birthMonth && birthDay
+      ? `${birthYear}-${String(birthMonth).padStart(2, "0")}-${String(birthDay).padStart(2, "0")}`
+      : "";
+  const dayOptions = Array.from(
+    { length: birthYear && birthMonth ? daysInMonth(Number(birthYear), Number(birthMonth)) : 31 },
+    (_, i) => i + 1
+  );
+
+  function handleYearChange(e) {
+    const y = e.target.value;
+    setBirthYear(y);
+    if (y && birthMonth && birthDay && Number(birthDay) > daysInMonth(Number(y), Number(birthMonth))) {
+      setBirthDay("");
+    }
+  }
+  function handleMonthChange(e) {
+    const m = e.target.value;
+    setBirthMonth(m);
+    if (birthYear && m && birthDay && Number(birthDay) > daysInMonth(Number(birthYear), Number(m))) {
+      setBirthDay("");
+    }
+  }
+
+  const canSubmit = name.trim() && birthDate && gender && (timeUnknown || birthTime);
 
   async function callSazuApi() {
     const [birthYear, birthMonth, birthDay] = birthDate.split("-").map(Number);
@@ -442,6 +464,7 @@ export default function SajuApp() {
       birthMonth,
       birthDay,
       isLunar: calendarType === "lunar",
+      isFemale: gender === "female",
     };
     if (!timeUnknown && birthTime) {
       const [birthHour, birthMinute] = birthTime.split(":").map(Number);
@@ -533,9 +556,7 @@ export default function SajuApp() {
 
     setIsDemo(demo);
     setErrorNote(
-      demo
-        ? "API 키가 없거나 요청이 제한되어 일부 데모 데이터로 대체되었습니다. 상단 '고급 설정'에서 API 키를 입력하면 실제 결과를 볼 수 있어요."
-        : ""
+      demo ? "API 키가 없거나 요청이 제한되어 일부 데모 데이터로 대체되었습니다." : ""
     );
     setResult({ pillars, counts, interpretation });
     setScreen("result");
@@ -601,11 +622,32 @@ export default function SajuApp() {
             </div>
 
             <label className="field-label">생년월일</label>
-            <input
-              type="date"
-              value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-            />
+            <div className="date-select-row">
+              <select value={birthYear} onChange={handleYearChange}>
+                <option value="">년</option>
+                {YEAR_OPTIONS.map((y) => (
+                  <option key={y} value={y}>
+                    {y}년
+                  </option>
+                ))}
+              </select>
+              <select value={birthMonth} onChange={handleMonthChange}>
+                <option value="">월</option>
+                {MONTH_OPTIONS.map((m) => (
+                  <option key={m} value={m}>
+                    {m}월
+                  </option>
+                ))}
+              </select>
+              <select value={birthDay} onChange={(e) => setBirthDay(e.target.value)}>
+                <option value="">일</option>
+                {dayOptions.map((d) => (
+                  <option key={d} value={d}>
+                    {d}일
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <label className="field-label">태어난 시간</label>
             <input
@@ -625,38 +667,21 @@ export default function SajuApp() {
               <label htmlFor="time-unknown">태어난 시간을 몰라요</label>
             </div>
 
-            <button
-              className={`advanced-toggle ${advancedOpen ? "open" : ""}`}
-              onClick={() => setAdvancedOpen((v) => !v)}
-            >
-              <Settings2 size={13} />
-              고급 설정 (API 키 입력)
-              <ChevronDown size={13} className="chev" />
-            </button>
-            {advancedOpen && (
-              <div className="advanced-body">
-                <label className="field-label" style={{ marginTop: 0 }}>
-                  SAZU API 키
-                </label>
-                <input
-                  type="password"
-                  placeholder="sazu API key"
-                  value={sazuKey}
-                  onChange={(e) => setSazuKey(e.target.value)}
-                />
-                <label className="field-label">OpenRouter API 키</label>
-                <input
-                  type="password"
-                  placeholder="sk-or-..."
-                  value={openrouterKey}
-                  onChange={(e) => setOpenrouterKey(e.target.value)}
-                />
-                <p className="hint">
-                  키를 입력하지 않으면 데모 데이터로 결과를 보여드려요. 입력한 키는 저장되지 않고
-                  이 화면을 벗어나면 사라져요.
-                </p>
-              </div>
-            )}
+            <label className="field-label">성별</label>
+            <div className="toggle-row">
+              <button
+                className={`toggle-btn ${gender === "male" ? "active" : ""}`}
+                onClick={() => setGender("male")}
+              >
+                남성
+              </button>
+              <button
+                className={`toggle-btn ${gender === "female" ? "active" : ""}`}
+                onClick={() => setGender("female")}
+              >
+                여성
+              </button>
+            </div>
 
             <button className="submit-btn" disabled={!canSubmit} onClick={handleSubmit}>
               <Sparkles size={16} />
