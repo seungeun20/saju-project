@@ -87,17 +87,24 @@ function buildMockInterpretation(name, counts) {
 
 const STYLE = `
 .saju-app {
-  --bg-void: #10112a;
-  --bg-panel: #1b1d3e;
-  --bg-panel-soft: #22254a;
-  --ink-red: #a93226;
-  --ink-red-soft: rgba(169, 50, 38, 0.35);
-  --brass: #c9a961;
-  --ivory: #f2ecdd;
-  --moon: #9c97c4;
+  --bg-void: #0d0d14;
+  --bg-panel: #1a1822;
+  --bg-panel-soft: #201d29;
+  --gold: #c9a13b;
+  --gold-bright: #e8cd7a;
+  --gold-soft: rgba(201, 161, 59, 0.3);
+  --plum: #6b2c5f;
+  --plum-bright: #9c5590;
+  --plum-soft: rgba(107, 44, 95, 0.35);
+  --ivory: #f0ece0;
+  --moon: #a89f8c;
+  --danger: #e0615c;
   font-family: 'Noto Sans KR', -apple-system, sans-serif;
   color: var(--ivory);
-  background: radial-gradient(circle at 20% 0%, #1c1e46 0%, var(--bg-void) 55%);
+  background:
+    radial-gradient(circle at 12% -8%, rgba(107, 44, 95, 0.35) 0%, transparent 45%),
+    radial-gradient(circle at 88% 108%, rgba(201, 161, 59, 0.14) 0%, transparent 50%),
+    var(--bg-void);
   min-height: 100%;
   position: relative;
   overflow-x: hidden;
@@ -106,16 +113,24 @@ const STYLE = `
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(1.5px 1.5px at 10% 15%, rgba(242,236,221,0.5), transparent),
-    radial-gradient(1px 1px at 30% 40%, rgba(242,236,221,0.35), transparent),
-    radial-gradient(1.5px 1.5px at 70% 20%, rgba(242,236,221,0.4), transparent),
-    radial-gradient(1px 1px at 85% 60%, rgba(242,236,221,0.3), transparent),
-    radial-gradient(1.5px 1.5px at 50% 80%, rgba(242,236,221,0.35), transparent),
-    radial-gradient(1px 1px at 15% 75%, rgba(242,236,221,0.3), transparent);
+    radial-gradient(1.5px 1.5px at 10% 15%, rgba(232,205,122,0.55), transparent),
+    radial-gradient(1px 1px at 30% 40%, rgba(240,236,224,0.3), transparent),
+    radial-gradient(1.5px 1.5px at 70% 20%, rgba(232,205,122,0.4), transparent),
+    radial-gradient(1px 1px at 85% 60%, rgba(240,236,224,0.28), transparent),
+    radial-gradient(1.5px 1.5px at 50% 80%, rgba(156,85,144,0.4), transparent),
+    radial-gradient(1px 1px at 15% 75%, rgba(240,236,224,0.25), transparent);
   pointer-events: none;
 }
+.saju-app .grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
 .saju-app .display {
-  font-family: 'Noto Serif KR', serif;
+  font-family: 'Gowun Batang', 'Noto Serif KR', serif;
 }
 .saju-app .wrap {
   position: relative;
@@ -127,7 +142,7 @@ const STYLE = `
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--brass);
+  color: var(--gold-bright);
   font-size: 13px;
   letter-spacing: 0.12em;
   margin-bottom: 14px;
@@ -146,8 +161,8 @@ const STYLE = `
 }
 .saju-app .panel {
   background: linear-gradient(160deg, var(--bg-panel) 0%, var(--bg-panel-soft) 100%);
-  border: 1px solid rgba(201, 169, 97, 0.25);
-  border-radius: 18px;
+  border: 1px solid var(--gold-soft);
+  border-radius: 16px;
   padding: 24px;
   box-shadow: 0 20px 40px -20px rgba(0,0,0,0.6);
 }
@@ -165,8 +180,8 @@ const STYLE = `
 .saju-app input[type="password"] {
   width: 100%;
   box-sizing: border-box;
-  background: rgba(16, 17, 42, 0.6);
-  border: 1px solid rgba(201, 169, 97, 0.3);
+  background: rgba(13, 13, 20, 0.6);
+  border: 1px solid var(--gold-soft);
   border-radius: 10px;
   padding: 11px 13px;
   color: var(--ivory);
@@ -175,7 +190,15 @@ const STYLE = `
   transition: border-color 0.15s ease;
 }
 .saju-app input:focus {
-  border-color: var(--brass);
+  border-color: var(--gold-bright);
+}
+.saju-app input.error {
+  border-color: var(--danger);
+}
+.saju-app .field-error {
+  color: var(--danger);
+  font-size: 12px;
+  margin-top: 6px;
 }
 .saju-app .toggle-row {
   display: flex;
@@ -186,7 +209,7 @@ const STYLE = `
   flex: 1;
   padding: 10px;
   border-radius: 10px;
-  border: 1px solid rgba(201, 169, 97, 0.3);
+  border: 1px solid var(--gold-soft);
   background: transparent;
   color: var(--moon);
   font-size: 13px;
@@ -194,8 +217,8 @@ const STYLE = `
   transition: all 0.15s ease;
 }
 .saju-app .toggle-btn.active {
-  background: var(--ink-red-soft);
-  border-color: var(--ink-red);
+  background: var(--plum-soft);
+  border-color: var(--plum-bright);
   color: var(--ivory);
 }
 .saju-app .checkbox-row {
@@ -206,7 +229,7 @@ const STYLE = `
   font-size: 13px;
   color: var(--moon);
 }
-.saju-app .checkbox-row input { accent-color: var(--ink-red); }
+.saju-app .checkbox-row input { accent-color: var(--gold); }
 .saju-app .advanced-toggle {
   display: flex;
   align-items: center;
@@ -224,7 +247,7 @@ const STYLE = `
 .saju-app .advanced-body {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px dashed rgba(201, 169, 97, 0.25);
+  border-top: 1px dashed var(--gold-soft);
 }
 .saju-app .hint {
   font-size: 11.5px;
@@ -236,20 +259,20 @@ const STYLE = `
   width: 100%;
   margin-top: 24px;
   padding: 15px;
-  border-radius: 12px;
+  border-radius: 999px;
   border: none;
-  background: linear-gradient(135deg, var(--ink-red) 0%, #8c2c22 100%);
-  color: var(--ivory);
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-bright) 100%);
+  color: #1c1508;
   font-size: 15px;
   font-weight: 700;
-  font-family: 'Noto Serif KR', serif;
+  font-family: 'Gowun Batang', 'Noto Serif KR', serif;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   transition: transform 0.1s ease, box-shadow 0.15s ease;
-  box-shadow: 0 10px 24px -10px rgba(169, 50, 38, 0.6);
+  box-shadow: 0 10px 24px -10px rgba(201, 161, 59, 0.6);
 }
 .saju-app .submit-btn:hover { transform: translateY(-1px); }
 .saju-app .submit-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
@@ -263,20 +286,23 @@ const STYLE = `
   color: var(--moon);
   text-align: center;
 }
-.saju-app .spin { animation: saju-spin 1.2s linear infinite; color: var(--brass); }
+.saju-app .spin { animation: saju-spin 1.2s linear infinite; color: var(--gold-bright); }
 @keyframes saju-spin { to { transform: rotate(360deg); } }
 .saju-app .back-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: none;
-  border: none;
-  color: var(--moon);
+  background: transparent;
+  border: 1px solid var(--gold-soft);
+  border-radius: 999px;
+  color: var(--gold-bright);
   font-size: 13px;
   cursor: pointer;
   margin-bottom: 18px;
-  padding: 0;
+  padding: 7px 14px;
+  transition: border-color 0.15s ease;
 }
+.saju-app .back-btn:hover { border-color: var(--gold-bright); }
 .saju-app .result-name {
   font-size: 22px;
   font-weight: 700;
@@ -292,8 +318,8 @@ const STYLE = `
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: var(--brass);
-  border: 1px solid rgba(201,169,97,0.4);
+  color: var(--gold-bright);
+  border: 1px solid var(--gold-soft);
   border-radius: 999px;
   padding: 4px 10px;
   margin-bottom: 18px;
@@ -317,13 +343,13 @@ const STYLE = `
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Noto Serif KR', serif;
+  font-family: 'Gowun Batang', 'Noto Serif KR', serif;
   font-weight: 900;
   font-size: 22px;
   position: relative;
-  border: 1.5px solid var(--brass);
+  border: 1.5px solid var(--gold);
   background:
-    radial-gradient(circle at 35% 30%, rgba(169,50,38,0.35), transparent 60%),
+    radial-gradient(circle at 35% 30%, rgba(107,44,95,0.35), transparent 60%),
     var(--bg-panel-soft);
   color: var(--ivory);
 }
@@ -331,7 +357,7 @@ const STYLE = `
   content: "";
   position: absolute;
   inset: 4px;
-  border: 1px solid rgba(201, 169, 97, 0.35);
+  border: 1px solid var(--gold-soft);
   border-radius: 8px;
 }
 .saju-app .seal-el {
@@ -363,11 +389,11 @@ const STYLE = `
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Noto Serif KR', serif;
+  font-family: 'Gowun Batang', 'Noto Serif KR', serif;
   font-size: 15px;
   font-weight: 700;
   margin: 0 0 8px;
-  color: var(--brass);
+  color: var(--gold-bright);
 }
 .saju-app .section-body {
   font-size: 13.5px;
@@ -381,11 +407,11 @@ const STYLE = `
   font-size: 12px;
   padding: 5px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(201,169,97,0.4);
+  border: 1px solid var(--gold-soft);
   color: var(--ivory);
 }
 .saju-app .error-text {
-  color: #e08a7d;
+  color: var(--danger);
   font-size: 12.5px;
   margin-top: 10px;
   line-height: 1.6;
@@ -532,10 +558,11 @@ export default function SajuApp() {
   return (
     <div className="saju-app">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
         ${STYLE}
       `}</style>
       <div className="stars" />
+      <div className="grain" />
 
       {screen === "input" && (
         <div className="wrap">
@@ -697,15 +724,15 @@ export default function SajuApp() {
             <div className="chart-wrap">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={chartData} outerRadius="72%">
-                  <PolarGrid stroke="rgba(201,169,97,0.25)" />
+                  <PolarGrid stroke="rgba(201,161,59,0.25)" />
                   <PolarAngleAxis
                     dataKey="subject"
-                    tick={{ fill: "#f2ecdd", fontSize: 12 }}
+                    tick={{ fill: "#f0ece0", fontSize: 12 }}
                   />
                   <Radar
                     dataKey="value"
-                    stroke="#a93226"
-                    fill="#a93226"
+                    stroke="#e8cd7a"
+                    fill="#c9a13b"
                     fillOpacity={0.45}
                   />
                 </RadarChart>
