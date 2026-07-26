@@ -35,6 +35,13 @@ const OHAENG_OF_JI = {
 const OHAENG_COLOR = { 목: "#7A9B5C", 화: "#B33A3A", 토: "#C9A961", 금: "#B8B4C8", 수: "#4C6C8C" };
 const OHAENG_LABEL = { 목: "목(木)", 화: "화(火)", 토: "토(土)", 금: "금(金)", 수: "수(水)" };
 const MONTHS = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
+const PILLAR_KEYS = [
+  { key: "year", label: "년주" },
+  { key: "month", label: "월주" },
+  { key: "day", label: "일주" },
+  { key: "hour", label: "시주" },
+];
+const ELEMENT_KEY_MAP = { wood: "목", fire: "화", earth: "토", metal: "금", water: "수" };
 
 function hashSeed(str) {
   let h = 0;
@@ -403,22 +410,47 @@ export default function SajuApp() {
   const canSubmit = name.trim() && birthDate && (timeUnknown || birthTime);
 
   async function callSazuApi() {
+    const [birthYear, birthMonth, birthDay] = birthDate.split("-").map(Number);
+    const body = {
+      birthYear,
+      birthMonth,
+      birthDay,
+      isLunar: calendarType === "lunar",
+    };
+    if (!timeUnknown && birthTime) {
+      const [birthHour, birthMinute] = birthTime.split(":").map(Number);
+      body.birthHour = birthHour;
+      body.birthMinute = birthMinute;
+    }
     const res = await fetch("https://api.sazu.app/v1/sazu/calculate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-api-key": sazuKey,
       },
-      body: JSON.stringify({
-        name,
-        calendar_type: calendarType,
-        birth_date: birthDate,
-        birth_time: timeUnknown ? null : birthTime,
-        time_unknown: timeUnknown,
-      }),
+      body: JSON.stringify(body),
     });
-    if (!res.ok) throw new Error(`SAZU API 응답 오류 (${res.status})`);
-    return res.json();
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data?.error?.message || `SAZU API 응답 오류 (${res.status})`);
+    }
+    return data.data;
+  }
+
+  function mapSazuResponse(sazuData) {
+    const fourPillars = sazuData.modules.fourPillars;
+    const pillars = PILLAR_KEYS.map(({ key, label }) => {
+      const p = fourPillars[key];
+      return p ? { label, gan: p.sky, ji: p.earth } : null;
+    }).filter(Boolean);
+
+    const elements = sazuData.modules.elements;
+    const counts = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 };
+    Object.entries(ELEMENT_KEY_MAP).forEach(([apiKey, label]) => {
+      counts[label] = elements[apiKey]?.total?.count ?? 0;
+    });
+
+    return { pillars, counts };
   }
 
   async function callOpenRouter(sajuSummary) {
@@ -457,8 +489,7 @@ export default function SajuApp() {
     try {
       if (!sazuKey) throw new Error("SAZU API 키가 입력되지 않았습니다.");
       const sazuData = await callSazuApi();
-      pillars = sazuData.pillars;
-      counts = sazuData.ohaeng_counts;
+      ({ pillars, counts } = mapSazuResponse(sazuData));
     } catch (e) {
       demo = true;
       const mock = generateMockSaju(name + birthDate + birthTime);
@@ -638,7 +669,10 @@ export default function SajuApp() {
               <Stamp size={15} />
               사주 여덟 글자
             </div>
-            <div className="pillars-grid">
+            <div
+              className="pillars-grid"
+              style={{ gridTemplateColumns: `repeat(${result.pillars.length}, 1fr)` }}
+            >
               {result.pillars.map((p) => (
                 <div className="pillar-col" key={p.label}>
                   <span className="pillar-label">{p.label}</span>
